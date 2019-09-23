@@ -57,7 +57,7 @@ const App = (props) => {
 
   const vote =()=>{
       let v = points[selected]+1
-      setVote(v) //only way I could get the view update...dropped the ball at somepoint I supposed
+      setVote(v) //only way I could get the view update, I dont really get as to why but eh ¯\_(ツ)_/¯
       points[selected] =v;
      
   }
