@@ -11,7 +11,7 @@ const Courses = ({ courses }) => {
       </>
     );
   });
-  console.log("COURSES", m);
+
   return (
     <>
       <ul>{m}</ul>
