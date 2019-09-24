@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Filter = function({ newFilter, setFilter }) {
   const handleFilter = event => {
@@ -32,7 +33,7 @@ const PersonForm = function({
   };
 
   return (
-    <form onSubmit={() => addPerson}>
+    <form onSubmit={addPerson}>
       <div>
         name: <input value={newName} onChange={handleNewNameField} />
       </div>
@@ -48,18 +49,14 @@ const PersonForm = function({
 
 const Persons = function({ newFilter, persons }) {
   let filtPersons;
-  console.log("newFilter", newFilter);
   if (newFilter !== "") {
     filtPersons = persons.filter(function(person) {
       const lowCase = newFilter.toLowerCase();
-      console.log("filtered", lowCase);
       return person.name.toLowerCase() === lowCase;
     });
   } else {
-    console.log("not filtered");
     filtPersons = persons;
   }
-  console.log("filtered", filtPersons);
   const pm = filtPersons.map(function(person, i) {
     return (
       <>
@@ -74,15 +71,22 @@ const Persons = function({ newFilter, persons }) {
 };
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456" },
-    { name: "Ada Lovelace", number: "39-44-5323523" },
-    { name: "Dan Abramov", number: "12-43-234345" },
-    { name: "Mary Poppendieck", number: "39-23-6423122" }
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [newFilter, setFilter] = useState("");
+
+  useEffect(() => {
+    console.log("effect");
+
+    const eventHandler = response => {
+      console.log("promise fulfilled");
+      setPersons(response.data);
+    };
+
+    const promise = axios.get("http://localhost:3001/persons");
+    promise.then(eventHandler);
+  }, []);
 
   const addPerson = function(event) {
     event.preventDefault();
