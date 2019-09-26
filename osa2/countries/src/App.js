@@ -48,7 +48,7 @@ const CountryFiltered = function({
   setCapital
 }) {
   console.log("countries", countries);
-
+  setCapital("");
   if (countries.length === 0) {
     return <></>;
   } else {
@@ -85,6 +85,7 @@ const CountryFiltered = function({
           </>
         );
       });
+
       return (
         <div>
           <ul>{countriesMapped}</ul>
