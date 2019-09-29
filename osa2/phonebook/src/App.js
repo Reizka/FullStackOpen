@@ -1,74 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import phonebookForm from "./components/phonebookForm";
+import persons from "./components/persons";
+import filter from "./components/filter";
+import crud from "./components/crud";
 
-const Filter = function({ newFilter, setFilter }) {
-  const handleFilter = event => {
-    console.log(event.target.value);
-    setFilter(event.target.value);
-  };
+const getAll = crud.getAll;
+const create = crud.create;
+const update = crud.update;
+const remove = crud.remove;
 
-  return (
-    <form>
-      <div>
-        Filter: <input value={newFilter} onChange={handleFilter}></input>
-      </div>
-    </form>
-  );
-};
-
-const PersonForm = function({
-  addPerson,
-  newName,
-  newNumber,
-  setNewName,
-  setNewNumber
-}) {
-  const handleNewNameField = event => {
-    console.log(event.target.value);
-    setNewName(event.target.value);
-  };
-  const handleNewNumberField = event => {
-    console.log(event.target.value);
-    setNewNumber(event.target.value);
-  };
-
-  return (
-    <form onSubmit={addPerson}>
-      <div>
-        name: <input value={newName} onChange={handleNewNameField} />
-      </div>
-      <div>
-        number: <input value={newNumber} onChange={handleNewNumberField} />
-      </div>
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  );
-};
-
-const Persons = function({ newFilter, persons }) {
-  let filtPersons;
-  if (newFilter !== "") {
-    filtPersons = persons.filter(function(person) {
-      const lowCase = newFilter.toLowerCase();
-      return person.name.toLowerCase() === lowCase;
-    });
-  } else {
-    filtPersons = persons;
-  }
-  const pm = filtPersons.map(function(person, i) {
-    return (
-      <>
-        <li key={i}>
-          Name: {person.name} number: {person.number}
-        </li>
-      </>
-    );
-  });
-
-  return <ul>{pm}</ul>;
-};
+const Filter = filter;
+const Persons = persons;
+const PersonForm = phonebookForm;
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -79,27 +23,82 @@ const App = () => {
   useEffect(() => {
     console.log("effect");
 
-    const eventHandler = response => {
+    getAll().then(function(response) {
       console.log("promise fulfilled");
-      setPersons(response.data);
-    };
-
-    const promise = axios.get("http://localhost:3001/persons");
-    promise.then(eventHandler);
+      setPersons(response);
+    });
   }, []);
 
   const addPerson = function(event) {
     event.preventDefault();
 
-    if (persons.some(person => person.name === newName) || newName === "") {
+    if (
+      persons.some(
+        person =>
+          person.name.toLowerCase() === newName.toLowerCase() &&
+          person.number.toLowerCase() === newNumber.toLowerCase()
+      ) ||
+      newName === ""
+    ) {
       alert(`${newName} already in the list or field is empty`);
+    } else if (
+      persons.some(
+        person =>
+          person.name.toLowerCase() === newName.toLowerCase() &&
+          person.number.toLowerCase() !== newNumber.toLowerCase()
+      )
+    ) {
+      if (window.confirm("do you want to update the number for " + newName)) {
+        console.log("nn", newName);
+        const person = persons.find(
+          n => n.name.toLowerCase() === newName.toLowerCase()
+        );
+        console.log("person", person);
+        const changedNumber = { ...person, number: newNumber };
+        console.log("changed person", changedNumber);
+        update(person.id, changedNumber).then(function(response) {
+          console.log("response i[da", response);
+          const nps = persons.map(function(person) {
+            if (person.id === response.id) {
+              return (person = response);
+            }
+            return person;
+          });
+          console.log("nps", nps);
+          setPersons(nps);
+        });
+      }
     } else {
-      const personObject = { name: newName, number: newNumber };
-      setPersons(persons.concat(personObject));
+      const personObject = {
+        name: newName,
+        number: newNumber,
+        id: persons.length + 1
+      };
+
+      create(personObject).then(function(response) {
+        setPersons(persons.concat(response));
+      });
     }
 
     setNewName("");
     setNewNumber("");
+  };
+
+  const deletePerson = function(event) {
+    const id = event.currentTarget.id;
+    console.log("delte person button clicked", id);
+    remove(id).then(function(response) {
+      console.log("del response", response);
+      getAll().then(function(response) {
+        setPersons(response);
+      });
+    });
+  };
+
+  const updatePerson = function(id, newPerson) {
+    update(id, newPerson).then(function(response) {
+      setPersons(persons.concat(response));
+    });
   };
 
   return (
@@ -117,7 +116,11 @@ const App = () => {
       />
 
       <h3>Numbers</h3>
-      <Persons persons={persons} newFilter={newFilter} />
+      <Persons
+        persons={persons}
+        newFilter={newFilter}
+        deletePerson={deletePerson}
+      />
     </div>
   );
 };
