@@ -14,7 +14,7 @@ const Persons = function({ newFilter, persons, deletePerson }) {
   const pm = filtPersons.map(function(person, i) {
     return (
       <>
-        <li key={i}>
+        <li className="person" key={i}>
           Name: {person.name} number: {person.number}
           <div>
             <button id={person.id} onClick={deletePerson}>
