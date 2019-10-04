@@ -1,7 +1,4 @@
 import React from "react";
-import crud from "./crud";
-
-const create = crud.create;
 
 const PhonebookForm = function({
   addPerson,
